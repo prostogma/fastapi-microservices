@@ -4,18 +4,16 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
-class BaseUserSchema(BaseModel):
-    email: EmailStr | None
-    is_active: bool | None
-
-
-class UserCreateSchema(BaseUserSchema):
+class UserCreateSchema(BaseModel):
     email: EmailStr
     is_active: bool | None = True
+    is_verified: bool | None = None
 
 
-class UserOutSchema(BaseUserSchema):
+class UserOutSchema(BaseModel):
     id: UUID
+    email: EmailStr
+    is_active: bool | None
     is_verified: bool | None
     created_at: datetime
     updated_at: datetime
@@ -23,19 +21,20 @@ class UserOutSchema(BaseUserSchema):
     model_config = ConfigDict(from_attributes=True)
 
 
-class UserUpdateSchema(BaseUserSchema):
+class UserUpdateSchema(BaseModel):
     email: EmailStr | None = None
     is_verified: bool | None = None
     is_active: bool | None = None
 
+
 class SortBy(str, Enum):
     CREATED_AT = "created_at"
     UPDATED_AT = "updated_at"
-    
+
 class SortOrder(str, Enum):
     ASC = "asc"
     DESC = "desc"
-    
+
 class UsersListQuerySchema(BaseModel):
     limit: int = Field(default=20, gt=0, lt=100)
     offset: int = Field(default=0, ge=0)

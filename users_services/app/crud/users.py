@@ -3,15 +3,15 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import User
-from app.schemas.user import SortBy, SortOrder, UserUpdateSchema, UsersListQuerySchema
+from app.schemas.user import SortBy, SortOrder, UserCreateSchema, UserUpdateSchema, UsersListQuerySchema
 
 from app.core.exceptions import UserNotFoundByIdError, UserNotFoundByEmailError
 
 
-async def create_user(user_data: dict, session: AsyncSession):
-    user = User(**user_data)
+async def create_user(user_data: UserCreateSchema, session: AsyncSession):
+    user = User(**user_data.model_dump())
     session.add(user)
-    await session.commit()
+    await session.flush()
     await session.refresh(user)
     return user
 
@@ -26,7 +26,7 @@ async def deactivate_user(user_id: UUID, session: AsyncSession):
         return user
 
     user.is_active = False
-    await session.commit()
+    await session.flush()
     await session.refresh(user)
     return user
 
@@ -54,7 +54,7 @@ async def update_user(
     if not has_changes:
         return user
 
-    await session.commit()
+    await session.flush()
     await session.refresh(user)
     return user
 
@@ -66,10 +66,10 @@ SORT_MAPPED = {
 async def get_users(params: UsersListQuerySchema, session: AsyncSession):
     stmt = select(User)
     
-    if params.is_active is not None:
+    if params.is_active:
         stmt = stmt.where(User.is_active == params.is_active)
 
-    if params.is_verified is not None:
+    if params.is_verified:
         stmt = stmt.where(User.is_verified == params.is_verified)
         
     sort_column = SORT_MAPPED.get(params.sort_by)
