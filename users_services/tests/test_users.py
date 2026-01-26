@@ -36,20 +36,32 @@ async def test_create_user_handler(
 class TestGetUserByEmail:
     async def test_get_user_by_email_handler(self, async_client, test_users):
         for user in test_users:
-            response = await async_client.get(f"/users/by-email?user_email={user.email}")
+            params = {"user_email": user.email}
+            response = await async_client.get(f"/users/by-email", params=params)
             assert response.status_code == 200
             assert response.json()["email"] == user.email
 
 
     @pytest.mark.parametrize(
-        "url, status_code",
+        "params, status_code",
         (
-            ["/users/by-email?email=example@email.com", 422],
-            ["/users/by-email?user_email=example@email.com", 404]
+            [{"email": "example@gmail.com"}, 422],
+            [{"user_email": "example_not_found@gmail.com"}, 404]
         )
     )
     async def test_get_user_by_email_handler_exc(
-        self, async_client, test_users: list[User], url: str, status_code: int
+        self, async_client, test_users: list[User], params: dict[str], status_code: int
     ):
-        response = await async_client.get(url)
+        response = await async_client.get("/users/by-email", params=params)
         assert response.status_code == status_code
+        
+async def test_get_user_by_id_handler(async_client, test_users: list[User]):
+    for user in test_users:
+        response = await async_client.get(f"/users/{user.id}")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["id"] == str(user.id)
+        assert "password" not in data
+    
+    response = await async_client.get("/users/9af1d544-c43d-4845-ae36-ad331e3a2d31")
+    assert response.status_code == 404
