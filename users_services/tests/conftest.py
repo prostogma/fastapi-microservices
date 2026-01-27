@@ -8,17 +8,19 @@ from alembic import command
 from alembic.config import Config
 
 from app.main import app
-from app.core.config import Settings, BASE_DIR
+from app.core.config import TestSettings
 from app.db.session import create_async_session
 from app.crud.users import create_user
 from app.schemas.user import UserCreateSchema
 from app.db.base import Base
 
 
-test_settings = Settings(_env_file=str(BASE_DIR / ".test.env"))
+test_settings = TestSettings()  # type: ignore
+
 
 @pytest.fixture(scope="session")
 async def test_engine():
+    assert "test" in test_settings.DATABASE_URL
     engine = create_async_engine(test_settings.DATABASE_URL, poolclass=NullPool)
 
     async with engine.begin() as conn:
@@ -31,9 +33,11 @@ async def test_engine():
 
     await engine.dispose()
 
+
 @pytest.fixture(scope="session")
 async def async_session_maker(test_engine):
     return async_sessionmaker(test_engine, expire_on_commit=False)
+
 
 @pytest.fixture
 async def db_session(async_session_maker):
@@ -51,7 +55,7 @@ async def async_client(db_session):
         yield db_session
 
     app.dependency_overrides[create_async_session] = override_get_session
-    
+
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as async_client:
@@ -78,3 +82,14 @@ async def test_users(db_session):
         users.append(user)
 
     yield users
+
+
+@pytest.fixture
+async def test_user(db_session):
+    user_data = {"email": "test@email.com"}
+
+    user = await create_user(
+        user_data=UserCreateSchema(**user_data), session=db_session
+    )
+
+    yield user

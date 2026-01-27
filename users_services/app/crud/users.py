@@ -1,19 +1,27 @@
 from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import IntegrityError
 
 from app.db.models import User
 from app.schemas.user import SortBy, SortOrder, UserCreateSchema, UserUpdateSchema, UsersListQuerySchema
 
-from app.core.exceptions import UserNotFoundByIdError, UserNotFoundByEmailError
+from app.core.exceptions import (
+    UserNotFoundByIdError,
+    UserNotFoundByEmailError,
+    UserAlreadyExistsError,
+)
 
 
 async def create_user(user_data: UserCreateSchema, session: AsyncSession):
     user = User(**user_data.model_dump())
     session.add(user)
-    await session.flush()
-    await session.refresh(user)
-    return user
+    try:
+        await session.flush()
+        await session.refresh(user)
+        return user
+    except IntegrityError as e:
+        raise UserAlreadyExistsError(user.email)
 
 
 async def deactivate_user(user_id: UUID, session: AsyncSession):
@@ -72,7 +80,7 @@ async def get_users(params: UsersListQuerySchema, session: AsyncSession):
     if params.is_verified:
         stmt = stmt.where(User.is_verified == params.is_verified)
         
-    sort_column = SORT_MAPPED.get(params.sort_by)
+    sort_column = SORT_MAPPED[params.sort_by]
 
     if params.sort_order == SortOrder.DESC:
         stmt = stmt.order_by(sort_column.desc(), User.id.asc())

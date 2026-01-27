@@ -3,19 +3,16 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import EmailStr
-from sqlalchemy.exc import IntegrityError
 
 from app.db.models import User
-from app.core.exceptions import UserNotFoundByEmailError, UserNotFoundByIdError
+from app.core.exceptions import UserNotFoundByEmailError, UserNotFoundByIdError, UserAlreadyExistsError
 from app.crud.users import (
     get_user_by_email,
     get_user_by_id,
     get_users,
-)
-from app.services.users import (
-    create_user_service,
-    deactivate_user_service,
-    update_user_service,
+    create_user,
+    deactivate_user,
+    update_user,
 )
 
 from app.db.session import session_DB
@@ -32,12 +29,12 @@ router = APIRouter(prefix="/users", tags=["users"])
 @router.post("/", response_model=UserOutSchema, status_code=status.HTTP_201_CREATED)
 async def create_user_handler(user_data: UserCreateSchema, session: session_DB) -> User:
     try:
-        user = await create_user_service(user_data, session)
+        user = await create_user(user_data, session)
         return user
-    except IntegrityError:
+    except UserAlreadyExistsError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User with this email already exists",
+            detail=f"{e}",
         )
 
 
@@ -72,7 +69,7 @@ async def get_user_by_id_handler(user_id: UUID, session: session_DB) -> UserOutS
 @router.patch("/{user_id}/deactivate", response_model=UserOutSchema)
 async def deactivate_user_handler(user_id: UUID, session: session_DB) -> UserOutSchema:
     try:
-        user = await deactivate_user_service(user_id=user_id, session=session)
+        user = await deactivate_user(user_id=user_id, session=session)
         return user
     except UserNotFoundByIdError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"{e}")
@@ -83,9 +80,7 @@ async def update_user_handler(
     user_id: UUID, user_data: UserUpdateSchema, session: session_DB
 ) -> UserOutSchema:
     try:
-        user = await update_user_service(
-            user_id=user_id, user_data=user_data, session=session
-        )
+        user = await update_user(user_id=user_id, user_data=user_data, session=session)
         return user
     except UserNotFoundByIdError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"{e}")
