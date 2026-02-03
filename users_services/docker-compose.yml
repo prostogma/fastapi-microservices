@@ -1,4 +1,21 @@
 services:
+  grpc_server:
+    build:
+      context: .
+      dockerfile: Dockerfile.grpc
+    ports:
+      - "50052:50051"
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
+
   postgres:
     image: postgres:17-alpine
     restart: unless-stopped

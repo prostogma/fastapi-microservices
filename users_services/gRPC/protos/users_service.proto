@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package users.v1;
+
+// Сервис для работы с сервисом пользователей
+service UserService {
+    // Возвращает информацию о пользователе по id
+    rpc GetUserByEmail (GetUserByEmailRequest) returns (GetUserByEmailResponse);
+}
+
+// Сообщение запроса, содержит email
+message GetUserByEmailRequest {
+    string email = 1;
+}
+
+// Сообщение ответ, содержит id, is_active, is_verified
+message GetUserByEmailResponse {
+    string id = 1;          // UUID v4
+    bool is_active = 2;
+    bool is_verified = 3;
+}

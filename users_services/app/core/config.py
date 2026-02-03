@@ -11,14 +11,12 @@ class Settings(BaseSettings):
     DB_NAME: str
     DB_USER: str
     DB_PASS: str
-    
-    IS_TEST: bool
 
-    # Дефолтная конфигурация
+    # Конфигурируем .env файл
     model_config = SettingsConfigDict(env_file=str(BASE_DIR / ".env"))
 
     @property
-    def DATABASE_URL(self):
+    def DATABASE_URL(self) -> str:
         return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
     
 class TestSettings(Settings):
