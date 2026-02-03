@@ -77,7 +77,7 @@ async def test_users(db_session):
 
     for udata in users_data:
         user = await create_user(
-            user_data=UserCreateSchema(**udata), session=db_session
+            user_data=UserCreateSchema(**udata).model_dump(), session=db_session
         )
         users.append(user)
 
@@ -89,7 +89,7 @@ async def test_user(db_session):
     user_data = {"email": "test@email.com"}
 
     user = await create_user(
-        user_data=UserCreateSchema(**user_data), session=db_session
+        user_data=UserCreateSchema(**user_data).model_dump(), session=db_session
     )
 
     yield user

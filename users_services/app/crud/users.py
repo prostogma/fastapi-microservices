@@ -13,8 +13,8 @@ from app.core.exceptions import (
 )
 
 
-async def create_user(user_data: UserCreateSchema, session: AsyncSession):
-    user = User(**user_data.model_dump())
+async def create_user(user_data: dict, session: AsyncSession):
+    user = User(**user_data)
     session.add(user)
     try:
         await session.flush()

@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x13users_service.proto\x12\x08users.v1\"&\n\x15GetUserByEmailRequest\x12\r\n\x05\x65mail\x18\x01 \x01(\t\"L\n\x16GetUserByEmailResponse\x12\n\n\x02id\x18\x01 \x01(\t\x12\x11\n\tis_active\x18\x02 \x01(\x08\x12\x13\n\x0bis_verified\x18\x03 \x01(\x08\x32\x62\n\x0bUserService\x12S\n\x0eGetUserByEmail\x12\x1f.users.v1.GetUserByEmailRequest\x1a .users.v1.GetUserByEmailResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x13users_service.proto\x12\x08users.v1\"&\n\x15GetUserByEmailRequest\x12\r\n\x05\x65mail\x18\x01 \x01(\t\"L\n\x16GetUserByEmailResponse\x12\n\n\x02id\x18\x01 \x01(\t\x12\x11\n\tis_active\x18\x02 \x01(\x08\x12\x13\n\x0bis_verified\x18\x03 \x01(\x08\x32\xba\x01\n\x0bUserService\x12S\n\x0eGetUserByEmail\x12\x1f.users.v1.GetUserByEmailRequest\x1a .users.v1.GetUserByEmailResponse\x12V\n\x11\x43reateUserByEmail\x12\x1f.users.v1.GetUserByEmailRequest\x1a .users.v1.GetUserByEmailResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -35,6 +35,6 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_GETUSERBYEMAILREQUEST']._serialized_end=71
   _globals['_GETUSERBYEMAILRESPONSE']._serialized_start=73
   _globals['_GETUSERBYEMAILRESPONSE']._serialized_end=149
-  _globals['_USERSERVICE']._serialized_start=151
-  _globals['_USERSERVICE']._serialized_end=249
+  _globals['_USERSERVICE']._serialized_start=152
+  _globals['_USERSERVICE']._serialized_end=338
 # @@protoc_insertion_point(module_scope)

@@ -6,6 +6,10 @@ package users.v1;
 service UserService {
     // Возвращает информацию о пользователе по id
     rpc GetUserByEmail (GetUserByEmailRequest) returns (GetUserByEmailResponse);
+
+    // Создаeт пользователя с заданным email
+    // (временно: до реализации notifications задает is_verified = true )
+    rpc CreateUserByEmail (GetUserByEmailRequest) returns (GetUserByEmailResponse);
 }
 
 // Сообщение запроса, содержит email

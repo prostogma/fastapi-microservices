@@ -29,7 +29,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 @router.post("/", response_model=UserOutSchema, status_code=status.HTTP_201_CREATED)
 async def create_user_handler(user_data: UserCreateSchema, session: session_DB) -> User:
     try:
-        user = await create_user(user_data, session)
+        user = await create_user(user_data.model_dump(), session)
         return user
     except UserAlreadyExistsError as e:
         raise HTTPException(

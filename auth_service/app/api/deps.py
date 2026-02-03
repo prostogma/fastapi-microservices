@@ -54,10 +54,10 @@ async def validate_active_auth_user(
     if not user_data:
         raise unauthed_exc
 
-    if not user_data.is_active:
+    if not user_data.is_active or not user_data.is_verified:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="User inactive",
+            detail="User inactive or no verified!",
         )
 
     user_password = await get_credential_password_by_user_id(
@@ -71,7 +71,7 @@ async def validate_active_auth_user(
         raise unauthed_exc
 
     user_access_data = UserAccessSchema(
-        sub=user_data.id, email=auth_data.username, is_verified=user_data.is_verified
+        sub=user_data.id, email=auth_data.username
     )
 
     return user_access_data

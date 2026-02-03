@@ -14,5 +14,11 @@ async def get_credential_password_by_user_id(session: AsyncSession, user_id: UUI
         return None
     
     return user.password_hash
-    
+
+async def create_credential(session: AsyncSession, credential_data: dict):
+    credential = Credential(**credential_data)
+    session.add(credential)
+    await session.flush()
+    await session.refresh(credential)
+    return credential
     
