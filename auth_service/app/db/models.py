@@ -13,7 +13,6 @@ class Credential(Base):
     id: Mapped[UUID] = mapped_column(SQLUUID, primary_key=True, default=uuid4)
     user_id: Mapped[UUID] = mapped_column(SQLUUID, unique=True)
     password_hash: Mapped[str] = mapped_column(String(255))
-    is_active: Mapped[bool] = mapped_column(default=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
