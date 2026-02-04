@@ -15,6 +15,7 @@ from app.schemas.auth import AuthSchema, UserAccessSchema
 from app.core.security import hash_secret, verify_secret
 
 from app.crud.auth import get_credential_password_by_user_id
+from app.services.auth import AuthService
 from gRPC.src.users_service_pb2 import GetUserByEmailResponse
 from gRPC.src.users_service_client import UsersServiceClient
 
@@ -85,3 +86,7 @@ def get_current_token_payload(
         return payload
     except InvalidTokenError as e:
         raise invalid_token_exc(e)
+
+def get_auth_service(users_client: Annotated[UsersServiceClient, Depends(get_user_client)]):
+    auth_service = AuthService(users_client)
+    return auth_service

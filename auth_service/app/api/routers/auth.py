@@ -1,15 +1,16 @@
-from typing import Annotated
+from typing import Annotated, Any
 from fastapi import APIRouter, Depends, Form
 
 from app.schemas.auth import TokenInfo, AuthSchema, UserAccessSchema
 from app.utils.jwt import encode_jwt
 from app.api.deps import (
+    get_auth_service,
     validate_active_auth_user,
     get_current_token_payload,
-    get_user_client
+    get_user_client,
 )
 from app.db.session import session_DB
-from app.services.registration import RegistrationService
+from app.services.auth import AuthService
 from gRPC.src.users_service_client import UsersServiceClient
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -17,9 +18,14 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/token", response_model=TokenInfo)
 async def auth_user(
-    auth_data: Annotated[UserAccessSchema, Depends(validate_active_auth_user)],
+    auth_data: Annotated[AuthSchema, Form()],
+    auth_service: Annotated[AuthService, Depends(get_auth_service)],
+    session: session_DB,
 ) -> TokenInfo:
-    jwt_payload = auth_data.model_dump()
+    user_access_data: UserAccessSchema = await auth_service.validate_active_auth_user(
+        session, auth_data
+    )
+    jwt_payload = user_access_data.model_dump()
 
     token = encode_jwt(payload=jwt_payload)
     return TokenInfo(access_token=token)
@@ -28,12 +34,13 @@ async def auth_user(
 @router.post("/register", response_model=TokenInfo)
 async def register_user(
     register_data: Annotated[AuthSchema, Form()],
-    users_client: Annotated[UsersServiceClient, Depends(get_user_client)],
-    session: session_DB
+    auth_service: Annotated[AuthService, Depends(get_auth_service)],
+    session: session_DB,
 ) -> TokenInfo:
-    service = RegistrationService(users_client)
-    jwt_payload: UserAccessSchema = await service.register_user(session, register_data.username, register_data.password)
-    
+    jwt_payload: UserAccessSchema = await auth_service.register_user(
+        session, register_data.username, register_data.password
+    )
+
     token = encode_jwt(payload=jwt_payload.model_dump())
     return TokenInfo(access_token=token)
 
@@ -41,8 +48,9 @@ async def register_user(
 @router.get("/self")
 async def auth_user_check_self_info(
     payload: Annotated[dict, Depends(get_current_token_payload)],
-): 
+) -> dict[str, Any | None]:
     return {
-        "email": payload.get("sub"),
-        "logged_in_at": payload.get("iat")
+        "id": payload.get("sub"),
+        "email": payload.get("email"),
+        "logged_in_at": payload.get("iat"),
     }
