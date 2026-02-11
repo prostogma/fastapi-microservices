@@ -1,8 +1,9 @@
+from typing import Any
 from uuid import UUID
-from sqlalchemy import select
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import Credential
+from app.db.models import Credential, RefreshToken
 
 
 async def get_credential_password_by_user_id(session: AsyncSession, user_id: UUID):
@@ -12,13 +13,49 @@ async def get_credential_password_by_user_id(session: AsyncSession, user_id: UUI
 
     if not user:
         return None
-    
+
     return user.password_hash
 
-async def create_credential(session: AsyncSession, credential_data: dict):
+
+async def create_credential(session: AsyncSession, credential_data: dict) -> Credential:
     credential = Credential(**credential_data)
     session.add(credential)
     await session.flush()
     await session.refresh(credential)
     return credential
+
+
+async def create_refresh_token(session: AsyncSession, auth_data: dict) -> RefreshToken:
+    refresh_token = RefreshToken(**auth_data)
+    session.add(refresh_token)
+    await session.flush()
+    await session.refresh(refresh_token)
+    return refresh_token
+
+
+async def revoke_all_user_tokens(session: AsyncSession, user_id: UUID):
+    stmt = (
+        update(RefreshToken)
+        .where(RefreshToken.user_id == user_id, RefreshToken.revoked_at.is_(None))
+        .values(revoked_at=func.now())
+    )
+    await session.execute(stmt)
+
+
+async def revoke_token(session: AsyncSession, hashed_refresh_token: str) -> UUID | None:
+    stmt = (
+        update(RefreshToken)
+        .where(
+            RefreshToken.token_hash == hashed_refresh_token,
+            RefreshToken.revoked_at.is_(None),
+            RefreshToken.expires_at > func.now(),
+        )
+        .values(revoked_at=func.now())
+        .returning(RefreshToken.user_id)
+    )
+    result = await session.execute(stmt)
+    row = result.first()
+    if row:
+        return row[0]   # user_id
     
+    return None

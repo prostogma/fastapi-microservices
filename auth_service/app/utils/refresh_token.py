@@ -1,6 +1,6 @@
 import secrets
 
 
-def create_refresh_token() -> str:
-    token = secrets.token_urlsafe(64)
+def generate_refresh_token() -> str:
+    token = secrets.token_urlsafe(32)
     return token

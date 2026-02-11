@@ -11,8 +11,8 @@ class CredentialCreateSchema(BaseModel):
 
 class UserAccessSchema(BaseModel):
     sub: str
-    email: EmailStr
     
 class TokenInfo(BaseModel):
     access_token: str
+    refresh_token: str | None = None
     token_type: str = "Bearer"
