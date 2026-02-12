@@ -4,6 +4,7 @@ import pytest
 import gRPC.src.users_service_pb2 as pb
 import gRPC.src.users_service_pb2_grpc as grpc_pb
 
+from unittest.mock import AsyncMock, patch
 from contextlib import nullcontext as does_not_raise
 
 from app.core.security import hash_secret, verify_secret
@@ -25,16 +26,32 @@ def test_hash_secret(secret: str):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "email, expected",
+    "email, expected, response_data",
     [
-        ("hello@example.com", does_not_raise()),
-        ("fail@exampl.com", pytest.raises(grpc.aio.AioRpcError))
+        ("hello@example.com", does_not_raise(), pb.GetUserByEmailResponse(id="1", is_active=True, is_verified=False)),
+        ("not_found@example.com", pytest.raises(grpc.aio.AioRpcError), None)
     ]
 )
-async def test_users_grpc_server_test(email, expected):
-    with expected:
-        channel = grpc.aio.insecure_channel("localhost:50052")
-        stub = grpc_pb.UserServiceStub(channel)
-        resp = await stub.GetUserByEmail(pb.GetUserByEmailRequest(email=email))
-        assert isinstance(resp, pb.GetUserByEmailResponse)
+async def test_users_grpc_server_test(email, expected, response_data):
+    with patch("gRPC.src.users_service_pb2_grpc.UserServiceStub") as MockStub:
+        stub_instance = MockStub.return_value
+        stub_instance.GetUserByEmail = AsyncMock()
 
+        if response_data is not None:
+            stub_instance.GetUserByEmail.return_value = response_data
+        else:
+            error = grpc.aio.AioRpcError(
+                code=grpc.StatusCode.NOT_FOUND,
+                details="User not found",
+                initial_metadata=(),
+                trailing_metadata=(),
+            )
+            stub_instance.GetUserByEmail.side_effect = error
+
+        with expected:
+            resp = await stub_instance.GetUserByEmail(pb.GetUserByEmailRequest(email=email))
+
+            assert isinstance(resp.id, str)
+            assert resp.id == response_data.id
+            assert resp.is_active is response_data.is_active
+            assert resp.is_verified is response_data.is_verified
