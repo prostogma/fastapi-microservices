@@ -39,7 +39,6 @@ async def refresh_access_token(
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
     refresh_token: Annotated[str, Depends(get_current_refresh_token_payload)],
 ) -> TokenInfo:
-    print(f"{refresh_token=}")
     tokens_info = await auth_service.refresh_access_token(session, refresh_token)
     return tokens_info
 

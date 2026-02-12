@@ -17,7 +17,7 @@ from app.schemas.auth import (
     TokenInfo,
     UserAccessSchema,
 )
-from app.core.security import hash_secret, verify_secret
+from app.core.security import hash_refresh_token, hash_secret, verify_secret
 from app.utils.refresh_token import generate_refresh_token
 from app.utils.jwt import encode_jwt
 from gRPC.src import users_service_pb2 as pb
@@ -97,18 +97,18 @@ class AuthService:
 
         return user_access_data
 
-    async def generate_refresh_token(self, session: AsyncSession, user_id: str) -> str:
+    async def generate_refresh_token(self, session: AsyncSession, user_id: UUID) -> str:
         token = generate_refresh_token()
-        print(f"{token=}")
-        print(f"{hash_secret(token)=}")
         expires_at = datetime.now(timezone.utc) + timedelta(
             days=settings.auth_jwt.refresh_token_expire_days
         )
+
         auth_data = {
-            "user_id": UUID(user_id),
-            "token_hash": hash_secret(token),
+            "user_id": user_id,
+            "token_hash": hash_refresh_token(token),
             "expires_at": expires_at,
         }
+        
         await create_refresh_token(session, auth_data)
 
         return token
@@ -116,8 +116,8 @@ class AuthService:
     async def refresh_access_token(
         self, session: AsyncSession, refresh_token: str
     ) -> TokenInfo:
-        # Вот тут нужно дописать логику проверки переданного refresh_token, видимо прийдется проверять все токены 
-        user_id = await revoke_token(session, refresh_token)
+        hashed_refresh_token = hash_refresh_token(refresh_token)
+        user_id = await revoke_token(session, hashed_refresh_token)
 
         if not user_id:
             await revoke_all_user_tokens(session, user_id)
@@ -125,7 +125,7 @@ class AuthService:
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token"
             )
 
-        access_token_data = UserAccessSchema(sub=user_id)
+        access_token_data = UserAccessSchema(sub=str(user_id))
         access_token = encode_jwt(payload=access_token_data.model_dump())
 
         new_refresh_token = await self.generate_refresh_token(session, user_id)
