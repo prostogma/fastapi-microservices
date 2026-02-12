@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.crud.auth import (
     create_credential,
     create_refresh_token,
+    enforce_refresh_token_limit,
     get_credential_password_by_user_id,
     revoke_all_user_tokens,
     revoke_token,
@@ -98,6 +99,8 @@ class AuthService:
         return user_access_data
 
     async def generate_refresh_token(self, session: AsyncSession, user_id: UUID) -> str:
+        await enforce_refresh_token_limit(session, user_id)
+
         token = generate_refresh_token()
         expires_at = datetime.now(timezone.utc) + timedelta(
             days=settings.auth_jwt.refresh_token_expire_days
@@ -108,7 +111,7 @@ class AuthService:
             "token_hash": hash_refresh_token(token),
             "expires_at": expires_at,
         }
-        
+
         await create_refresh_token(session, auth_data)
 
         return token

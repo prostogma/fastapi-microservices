@@ -7,7 +7,7 @@ from app.api.deps import (
     get_auth_service,
     get_current_access_token_payload,
     get_current_refresh_token_payload,
-    http_bearer
+    http_bearer,
 )
 from app.db.session import session_DB
 from app.services.auth import AuthService
