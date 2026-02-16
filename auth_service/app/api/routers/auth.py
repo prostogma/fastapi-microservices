@@ -76,8 +76,22 @@ async def change_user_password(
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
     data: ChangePassword,
     payload: Annotated[dict, Depends(get_current_access_token_payload)],
-):
+) -> Response:
     user_id = payload.get("sub")
 
     await auth_service.change_user_password(session, data, UUID(user_id))
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/logout")
+async def logout(
+    session: session_DB,
+    auth_service: Annotated[AuthService, Depends(get_auth_service)],
+    payload: Annotated[dict, Depends(get_current_access_token_payload)],
+) -> Response:
+    user_id = payload.get("sub")
+    await auth_service.logout(session, UUID(user_id))
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+    
+    
+    

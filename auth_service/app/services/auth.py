@@ -158,3 +158,6 @@ class AuthService:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid access token")
 
         await revoke_all_user_tokens(session, user_id)
+        
+    async def logout(self, session: AsyncSession, user_id: UUID):
+        await revoke_all_user_tokens(session, user_id)
