@@ -5,6 +5,7 @@ from fastapi import HTTPException, status
 import grpc
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.crud.auth import (
+    change_user_password,
     create_credential,
     create_refresh_token,
     enforce_refresh_token_limit,
@@ -14,6 +15,7 @@ from app.crud.auth import (
 )
 from app.schemas.auth import (
     AuthSchema,
+    ChangePassword,
     CredentialCreateSchema,
     TokenInfo,
     UserAccessSchema,
@@ -21,6 +23,7 @@ from app.schemas.auth import (
 from app.core.security import hash_refresh_token, hash_secret, verify_secret
 from app.utils.refresh_token import generate_refresh_token
 from app.utils.jwt import encode_jwt
+from app.core.exceptions import UserNotFoundError
 from gRPC.src import users_service_pb2 as pb
 from gRPC.src.users_service_client import UsersServiceClient
 from app.core.config import settings
@@ -134,3 +137,24 @@ class AuthService:
         new_refresh_token = await self.generate_refresh_token(session, user_id)
 
         return TokenInfo(access_token=access_token, refresh_token=new_refresh_token)
+
+    async def change_user_password(self, session: AsyncSession, data: ChangePassword, user_id: UUID) -> None:
+        password_in_db = await get_credential_password_by_user_id(session, user_id)
+
+        if not password_in_db:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Credentials not found")
+        
+        if data.new_password == data.old_password:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="New password must be different from old password")
+
+        if not verify_secret(data.old_password, password_in_db):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid password")
+
+        hashed_new_password = hash_secret(data.new_password)
+
+        try:
+            await change_user_password(session, user_id, hashed_new_password)
+        except UserNotFoundError as e:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid access token")
+
+        await revoke_all_user_tokens(session, user_id)

@@ -32,7 +32,7 @@ def test_hash_secret(secret: str):
         ("not_found@example.com", pytest.raises(grpc.aio.AioRpcError), None)
     ]
 )
-async def test_users_grpc_server_test(email, expected, response_data):
+async def test_get_user_by_email_grpc(email, expected, response_data):
     with patch("gRPC.src.users_service_pb2_grpc.UserServiceStub") as MockStub:
         stub_instance = MockStub.return_value
         stub_instance.GetUserByEmail = AsyncMock()

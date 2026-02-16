@@ -4,6 +4,8 @@ from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import Credential, RefreshToken
+from app.core.security import verify_secret
+from app.core.exceptions import UserNotFoundError
 
 
 async def get_credential_password_by_user_id(session: AsyncSession, user_id: UUID):
@@ -89,3 +91,19 @@ async def revoke_token(session: AsyncSession, hashed_refresh_token: str) -> UUID
         return row[0]  # user_id
 
     return None
+
+
+async def change_user_password(session: AsyncSession, user_id: UUID, new_password: str) -> UUID:
+    stmt = (
+        update(Credential)
+        .where(Credential.user_id == user_id)
+        .values(password_hash=new_password, password_updated_at=func.now())
+        .returning(Credential.user_id)
+    )
+    result = await session.execute(stmt)
+    updated_credential_user_id = result.scalar_one_or_none()
+
+    if not updated_credential_user_id:
+        raise UserNotFoundError("Update failed: user not found")
+
+    return updated_credential_user_id

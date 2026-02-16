@@ -1,7 +1,8 @@
 from typing import Annotated, Any
-from fastapi import APIRouter, Depends, Form
+from uuid import UUID
+from fastapi import APIRouter, Depends, Form, Response, status
 
-from app.schemas.auth import TokenInfo, AuthSchema, UserAccessSchema
+from app.schemas.auth import ChangePassword, TokenInfo, AuthSchema, UserAccessSchema
 from app.utils.jwt import encode_jwt
 from app.api.deps import (
     get_auth_service,
@@ -67,3 +68,16 @@ async def auth_user_check_self_info(
         "id": payload.get("sub"),
         "logged_in_at": payload.get("iat"),
     }
+
+
+@router.post("/change-password")
+async def change_user_password(
+    session: session_DB,
+    auth_service: Annotated[AuthService, Depends(get_auth_service)],
+    data: ChangePassword,
+    payload: Annotated[dict, Depends(get_current_access_token_payload)],
+):
+    user_id = payload.get("sub")
+
+    await auth_service.change_user_password(session, data, UUID(user_id))
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

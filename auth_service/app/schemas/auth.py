@@ -16,3 +16,7 @@ class TokenInfo(BaseModel):
     access_token: str
     refresh_token: str | None = None
     token_type: str = "Bearer"
+    
+class ChangePassword(BaseModel):
+    old_password: str
+    new_password: str = Field(min_length=8, max_length=100, description="От 8 до 100 символов")
