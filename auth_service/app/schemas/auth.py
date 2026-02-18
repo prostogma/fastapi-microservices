@@ -6,7 +6,7 @@ class AuthSchema(BaseModel):
     password: str = Field(max_length=50)
 
 class CredentialCreateSchema(BaseModel):
-    user_id: UUID
+    user_id: str
     password_hash: str
 
 class UserAccessSchema(BaseModel):

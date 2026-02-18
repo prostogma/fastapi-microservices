@@ -35,7 +35,7 @@ class AuthService:
 
     async def register_user(self, session: AsyncSession, email: str, password: str):
         try:
-            user_data: pb.GetUserByEmailResponse = (
+            user_data: pb.GetUserByEmailResponse | None = (
                 await self.users_client.create_user_by_email(email)
             )
 
@@ -123,12 +123,18 @@ class AuthService:
         self, session: AsyncSession, refresh_token: str
     ) -> TokenInfo:
         hashed_refresh_token = hash_refresh_token(refresh_token)
-        user_id = await revoke_token(session, hashed_refresh_token)
+        user_id, is_compromised = await revoke_token(session, hashed_refresh_token)
 
-        if not user_id:
-            await revoke_all_user_tokens(session, user_id)
+        if user_id is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token"
+            )
+        
+        # Кража токена, т.к. у токена уже есть revoked_at
+        if is_compromised:
+            await revoke_all_user_tokens(session, user_id)
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Security error, token compromise detected"
             )
 
         access_token_data = UserAccessSchema(sub=str(user_id))

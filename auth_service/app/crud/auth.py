@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID
 from sqlalchemy import func, select, update
@@ -65,7 +66,7 @@ async def enforce_refresh_token_limit(
     )
 
 
-async def revoke_all_user_tokens(session: AsyncSession, user_id: UUID):
+async def revoke_all_user_tokens(session: AsyncSession, user_id: UUID) -> None:
     stmt = (
         update(RefreshToken)
         .where(RefreshToken.user_id == user_id, RefreshToken.revoked_at.is_(None))
@@ -74,24 +75,25 @@ async def revoke_all_user_tokens(session: AsyncSession, user_id: UUID):
     await session.execute(stmt)
 
 
-async def revoke_token(session: AsyncSession, hashed_refresh_token: str) -> UUID | None:
-    stmt = (
-        update(RefreshToken)
-        .where(
-            RefreshToken.token_hash == hashed_refresh_token,
-            RefreshToken.revoked_at.is_(None),
-            RefreshToken.expires_at > func.now(),
-        )
-        .values(revoked_at=func.now())
-        .returning(RefreshToken.user_id)
-    )
+async def revoke_token(session: AsyncSession, hashed_refresh_token: str) -> tuple[UUID | None, bool]:
+    stmt = select(RefreshToken).where(RefreshToken.token_hash == hashed_refresh_token)
     result = await session.execute(stmt)
-    row = result.first()
-    if row:
-        return row[0]  # user_id
+    token_record = result.scalar_one_or_none()
+    
+    if not token_record:
+        return None, False
 
-    return None
-
+    if token_record.revoked_at is not None:
+        # Токен используется повторно после revoke!
+        return token_record.user_id, True
+    
+    if token_record.expires_at < datetime.now(timezone.utc):
+        return None, False
+    
+    token_record.revoked_at = func.now()
+    await session.flush()
+    return token_record.user_id, False
+    
 
 async def change_user_password(session: AsyncSession, user_id: UUID, new_password: str) -> UUID:
     stmt = (

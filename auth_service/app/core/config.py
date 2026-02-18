@@ -30,4 +30,4 @@ class Settings(BaseSettings):
     auth_jwt: AuthJWT = AuthJWT()
 
 
-settings = Settings()
+settings = Settings()   # type:ignore

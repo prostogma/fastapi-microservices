@@ -2,7 +2,6 @@ import grpc
 import pytest
 
 import gRPC.src.users_service_pb2 as pb
-import gRPC.src.users_service_pb2_grpc as grpc_pb
 
 from unittest.mock import AsyncMock, patch
 from contextlib import nullcontext as does_not_raise

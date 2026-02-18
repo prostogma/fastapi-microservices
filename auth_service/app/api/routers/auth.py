@@ -54,7 +54,7 @@ async def register_user(
         session, register_data.username, register_data.password
     )
 
-    refresh_token = await auth_service.generate_refresh_token(session, jwt_payload.sub)
+    refresh_token = await auth_service.generate_refresh_token(session, UUID(jwt_payload.sub))
 
     token = encode_jwt(payload=jwt_payload.model_dump())
     return TokenInfo(access_token=token, refresh_token=refresh_token)
