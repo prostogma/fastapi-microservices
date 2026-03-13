@@ -21,6 +21,14 @@ class ChangePassword(BaseModel):
     old_password: str
     new_password: str = Field(min_length=8, max_length=100, description="От 8 до 100 символов")
 
+class KafkaMessageValueData(BaseModel):
+    email: str
+    token: str
+
+class KafkaMessageValue(BaseModel):
+    event_type: str = Field(default="user_registered")
+    data: KafkaMessageValueData
+
 class KafkaMessage(BaseModel):
     key: str
-    value: str
+    value: KafkaMessageValue

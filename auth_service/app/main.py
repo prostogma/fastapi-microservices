@@ -26,8 +26,8 @@ app = FastAPI(title="Auth service", lifespan=lifespan)
 
 @app.post("/publish")
 async def public_kafka_message(data: KafkaMessage):
-    message = {"key": data.key, "value": data.value}
-    await producer.send_one("my-topic", message)
+    message = data.value.model_dump()
+    await producer.send_one("auth.events", message)
     return {"sent": True, "payload": message}
     
     

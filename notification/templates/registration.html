@@ -1,0 +1,15 @@
+<html>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6;">
+        <h1 style="color: #4CAF50;">Добро пожаловать, {{ email }}!</h1>
+        <p>Для завершения регистрации, пожалуйста, подтвердите ваш почтовый адрес.</p>
+        <div style="margin: 20px 0;">
+            <a href="{{ verify_url }}?token={{ token }}" 
+               style="background-color: #008CBA; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; display: inline-block;">
+               Подтвердить регистрацию
+            </a>
+        </div>
+        <p>Ссылка действительна в течение 24 часов.</p>
+        <hr style="border: none; border-top: 1px solid #eee;">
+        <p style="font-size: 0.8em; color: #888;">Если вы не регистрировались на нашем сайте, просто удалите это письмо.</p>
+    </body>
+</html>
