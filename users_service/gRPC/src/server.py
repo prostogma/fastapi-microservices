@@ -36,8 +36,8 @@ class UserServiceServicer(grpc_pb.UserServiceServicer):
         async with async_session_maker() as session:
             try:
                 user_data = UserCreateSchema(
-                    email=request.email, is_active=True, is_verified=True
-                )  # is_verified: True - заглушка до момента создания notification service
+                    email=request.email, is_active=True, is_verified=False
+                )
                 user = await create_user(user_data.model_dump(), session)
                 await session.commit()
                 response = pb.GetUserByEmailResponse(

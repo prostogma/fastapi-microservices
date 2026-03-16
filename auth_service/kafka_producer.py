@@ -18,9 +18,6 @@ class KafkaProducer:
         if self._producer:
             await self._producer.stop()
 
-    async def send_one(self, topic: str, message: dict):
+    async def send_one(self, topic: str, key: str, message: dict):
         if self._producer:
-            await self._producer.send_and_wait(topic=topic, value=message)
-
-
-producer = KafkaProducer()
+            await self._producer.send_and_wait(topic=topic, key=key, value=message)

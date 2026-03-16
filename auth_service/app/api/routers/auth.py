@@ -1,6 +1,7 @@
 from typing import Annotated, Any
 from uuid import UUID
 from fastapi import APIRouter, Depends, Form, Response, status
+from redis.asyncio import Redis
 
 from app.schemas.auth import ChangePassword, TokenInfo, AuthSchema, UserAccessSchema
 from app.utils.jwt import encode_jwt
@@ -8,10 +9,13 @@ from app.api.deps import (
     get_auth_service,
     get_current_access_token_payload,
     get_current_refresh_token_payload,
+    get_producer,
+    get_redis,
     http_bearer,
 )
 from app.db.session import session_DB
 from app.services.auth import AuthService
+from kafka_producer import KafkaProducer
 
 router = APIRouter(prefix="/auth", tags=["auth"], dependencies=[Depends(http_bearer)])
 
@@ -48,16 +52,27 @@ async def refresh_access_token(
 async def register_user(
     register_data: Annotated[AuthSchema, Form()],
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
+    redis: Annotated[Redis, Depends(get_redis)],
+    producer: Annotated[KafkaProducer, Depends(get_producer)],
     session: session_DB,
 ) -> TokenInfo:
-    jwt_payload: UserAccessSchema = await auth_service.register_user(
-        session, register_data.username, register_data.password
+
+    # jwt_payload: UserAccessSchema = await auth_service.register_user(
+    #     session, redis, producer, register_data.username, register_data.password
+    # )
+
+    # refresh_token = await auth_service.generate_refresh_token(session, UUID(jwt_payload.sub))
+
+    # token = encode_jwt(payload=jwt_payload.model_dump())
+    # return TokenInfo(access_token=token, refresh_token=refresh_token)
+    response = await auth_service.register_user(
+        session, redis, producer, register_data.username, register_data.password
     )
+    return response
 
-    refresh_token = await auth_service.generate_refresh_token(session, UUID(jwt_payload.sub))
-
-    token = encode_jwt(payload=jwt_payload.model_dump())
-    return TokenInfo(access_token=token, refresh_token=refresh_token)
+@router.post("/verify-email")
+async def verify_email(token: str, session: session_DB, redis: Annotated[Redis, Depends(get_redis)]):
+    ... # за счет session менять не может, т.к. нет доступа к базе users, нужно продумать через gRPC/kafka как это сделать
 
 
 @router.get("/self")
@@ -92,6 +107,3 @@ async def logout(
     user_id = payload.get("sub")
     await auth_service.logout(session, UUID(user_id))
     return Response(status_code=status.HTTP_204_NO_CONTENT)
-    
-    
-    

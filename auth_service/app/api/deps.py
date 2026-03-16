@@ -1,21 +1,18 @@
 from typing import Annotated
 from uuid import UUID
-from fastapi import Depends, Form, HTTPException, Request, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import (
     HTTPBearer,
     OAuth2PasswordBearer,
 )
 import grpc
 from jwt import InvalidTokenError
+from redis.asyncio import Redis
 
-from app.db.session import session_DB
 from app.utils.jwt import decode_jwt
-from app.schemas.auth import AuthSchema, UserAccessSchema
-from app.core.security import verify_secret
 
-from app.crud.auth import get_credential_password_by_user_id
 from app.services.auth import AuthService
-from gRPC.src.users_service_pb2 import GetUserByEmailResponse
+from kafka_producer import KafkaProducer
 from gRPC.src.users_service_client import UsersServiceClient
 
 http_bearer = HTTPBearer(auto_error=False)
@@ -27,13 +24,17 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 def get_user_client(request: Request) -> UsersServiceClient:
     return request.app.state.users_client
 
+def get_redis(request: Request) -> Redis:
+    return request.app.state.redis
+
+def get_producer(request: Request) -> KafkaProducer:
+    return request.app.state.producer
 
 def invalid_token_exc(e=None):
     return HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail=f"Invalid token error - {e}",
     )
-
 
 def get_current_access_token_payload(
     token: Annotated[str, Depends(oauth2_scheme)],

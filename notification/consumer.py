@@ -27,11 +27,8 @@ class KafkaConsumer:
         try:
             async for msg in self._consumer:
                 payload = msg.value
-                print(f"{payload=}")
                 event_type = payload.get("event_type")
-                print(f"{event_type=}")
                 data = payload.get("data")
-                print(f"{data=}")
 
                 if event_type == "user_registered":
                     email = data.get("email")

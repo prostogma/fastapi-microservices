@@ -21,7 +21,9 @@ class Mailer:
     async def send_registration_email(self, recipient: str, token: str):
         template = self.env.get_template("registration.html")
 
-        html_content = template.render(email=recipient, token=token, verify_url="...")
+        html_content = template.render(
+            email=recipient, token=token, verify_url="http://127.0.0.1:8000/verify_email"
+        )
 
         message = EmailMessage()
         message["From"] = self.user or "noreply@example.com"
