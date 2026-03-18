@@ -35,5 +35,13 @@ class UsersServiceClient:
             else:
                 raise RuntimeError(f"Ошибка gRPC: {e.code()} - {e.details()}")
     
+    async def verified_user_by_id(self, id: str) -> pb.GetUserByEmailResponse | None:
+        try:
+            response = await self._stub.VerifiedUserById(pb.VerifyUserByIdRequest(id=id))
+            return response
+        except grpc.aio.AioRpcError as e:
+            if e.code() == grpc.StatusCode.NOT_FOUND:
+                raise ValueError(f"Error while verifying user: {e.details()}")
+    
     async def close(self):
         await self._channel.close()

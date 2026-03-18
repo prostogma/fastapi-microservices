@@ -70,9 +70,20 @@ async def register_user(
     )
     return response
 
+
 @router.post("/verify-email")
-async def verify_email(token: str, session: session_DB, redis: Annotated[Redis, Depends(get_redis)]):
-    ... # за счет session менять не может, т.к. нет доступа к базе users, нужно продумать через gRPC/kafka как это сделать
+async def verify_email(
+    auth_service: Annotated[AuthService, Depends(get_auth_service)],
+    session: session_DB,
+    token: str,
+    redis: Annotated[Redis, Depends(get_redis)],
+) -> TokenInfo:
+    jwt_payload: UserAccessSchema = await auth_service.verify_email(session, token, redis)
+    
+    token = encode_jwt(payload=jwt_payload.model_dump())
+    
+    refresh_token = await auth_service.generate_refresh_token(session, user_id=UUID(jwt_payload.sub))
+    return TokenInfo(access_token=token, refresh_token=refresh_token)
 
 
 @router.get("/self")

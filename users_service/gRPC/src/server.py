@@ -6,9 +6,13 @@ from gRPC.src import users_service_pb2_grpc as grpc_pb
 from gRPC.src import users_service_pb2 as pb
 
 from app.db.session import async_session_maker
-from app.crud.users import create_user, get_user_by_email
-from app.core.exceptions import UserAlreadyExistsError, UserNotFoundByEmailError
-from app.schemas.user import UserCreateSchema
+from app.crud.users import create_user, get_user_by_email, update_user
+from app.core.exceptions import (
+    UserAlreadyExistsError,
+    UserNotFoundByEmailError,
+    UserNotFoundByIdError,
+)
+from app.schemas.user import UserCreateSchema, UserUpdateSchema
 
 
 class UserServiceServicer(grpc_pb.UserServiceServicer):
@@ -41,7 +45,9 @@ class UserServiceServicer(grpc_pb.UserServiceServicer):
                 user = await create_user(user_data.model_dump(), session)
                 await session.commit()
                 response = pb.GetUserByEmailResponse(
-                    id=str(user.id), is_active=user.is_active, is_verified=user.is_verified
+                    id=str(user.id),
+                    is_active=user.is_active,
+                    is_verified=user.is_verified,
                 )
                 return response
             except ValidationError as e:
@@ -50,6 +56,23 @@ class UserServiceServicer(grpc_pb.UserServiceServicer):
             except UserAlreadyExistsError as e:
                 session.rollback()
                 await context.abort(grpc.StatusCode.ALREADY_EXISTS, str(e))
+
+    async def VerifiedUserById(self, request, context):
+        async with async_session_maker() as session:
+            try:
+                user_update_data = UserUpdateSchema(is_verified=True)
+                user = await update_user(
+                    user_id=request.id, user_data=user_update_data, session=session
+                )
+                response = pb.GetUserByEmailResponse(
+                    id=str(user.id),
+                    is_active=user.is_active,
+                    is_verified=user.is_verified,
+                )
+                return response
+            except UserNotFoundByIdError as e:
+                session.rollback()
+                await context.abort(grpc.StatusCode.NOT_FOUND, str(e))
 
 
 async def server():

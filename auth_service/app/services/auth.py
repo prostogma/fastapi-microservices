@@ -81,7 +81,10 @@ class AuthService:
 
             await create_credential(session, credential_data.model_dump())
 
-            return {"ok": True, "message": "Ссылка для подтверждения отправлена на указанный адрес"}
+            return {
+                "ok": True,
+                "message": "Ссылка для подтверждения отправлена на указанный адрес",
+            }
             # return UserAccessSchema(sub=user_data.id)
 
         except ValueError as e:
@@ -94,6 +97,23 @@ class AuthService:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
             )
+
+    async def verify_email(self, session: AsyncSession, token: str, redis: Redis):
+        try:
+            user_id = redis.get(token)
+            if not user_id:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Record with token not found!",
+                )
+
+            user_data: pb.GetUserByEmailResponse | None = (
+                self.users_client.verified_user_by_id(str(user_id))
+            )
+            return UserAccessSchema(sub=user_data.id)
+
+        except ValueError as e:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
     async def validate_active_auth_user(
         self, session: AsyncSession, auth_data: AuthSchema

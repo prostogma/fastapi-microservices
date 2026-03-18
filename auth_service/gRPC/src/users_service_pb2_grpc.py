@@ -45,6 +45,11 @@ class UserServiceStub(object):
                 request_serializer=users__service__pb2.GetUserByEmailRequest.SerializeToString,
                 response_deserializer=users__service__pb2.GetUserByEmailResponse.FromString,
                 _registered_method=True)
+        self.VerifiedUserById = channel.unary_unary(
+                '/users.v1.UserService/VerifiedUserById',
+                request_serializer=users__service__pb2.VerifyUserByIdRequest.SerializeToString,
+                response_deserializer=users__service__pb2.GetUserByEmailResponse.FromString,
+                _registered_method=True)
 
 
 class UserServiceServicer(object):
@@ -66,6 +71,12 @@ class UserServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def VerifiedUserById(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_UserServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -77,6 +88,11 @@ def add_UserServiceServicer_to_server(servicer, server):
             'CreateUserByEmail': grpc.unary_unary_rpc_method_handler(
                     servicer.CreateUserByEmail,
                     request_deserializer=users__service__pb2.GetUserByEmailRequest.FromString,
+                    response_serializer=users__service__pb2.GetUserByEmailResponse.SerializeToString,
+            ),
+            'VerifiedUserById': grpc.unary_unary_rpc_method_handler(
+                    servicer.VerifiedUserById,
+                    request_deserializer=users__service__pb2.VerifyUserByIdRequest.FromString,
                     response_serializer=users__service__pb2.GetUserByEmailResponse.SerializeToString,
             ),
     }
@@ -134,6 +150,33 @@ class UserService(object):
             target,
             '/users.v1.UserService/CreateUserByEmail',
             users__service__pb2.GetUserByEmailRequest.SerializeToString,
+            users__service__pb2.GetUserByEmailResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def VerifiedUserById(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/users.v1.UserService/VerifiedUserById',
+            users__service__pb2.VerifyUserByIdRequest.SerializeToString,
             users__service__pb2.GetUserByEmailResponse.FromString,
             options,
             channel_credentials,

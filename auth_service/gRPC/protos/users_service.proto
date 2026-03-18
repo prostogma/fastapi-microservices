@@ -10,6 +10,8 @@ service UserService {
     // Создаeт пользователя с заданным email
     // (временно: до реализации notifications задает is_verified = true )
     rpc CreateUserByEmail (GetUserByEmailRequest) returns (GetUserByEmailResponse);
+
+    rpc VerifiedUserById (VerifyUserByIdRequest) returns (GetUserByEmailResponse);
 }
 
 // Сообщение запроса, содержит email
@@ -22,4 +24,8 @@ message GetUserByEmailResponse {
     string id = 1;          // UUID v4
     bool is_active = 2;
     bool is_verified = 3;
+}
+
+message VerifyUserByIdRequest {
+    string id = 1;
 }

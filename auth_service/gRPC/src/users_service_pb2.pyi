@@ -19,3 +19,9 @@ class GetUserByEmailResponse(_message.Message):
     is_active: bool
     is_verified: bool
     def __init__(self, id: _Optional[str] = ..., is_active: bool = ..., is_verified: bool = ...) -> None: ...
+
+class VerifyUserByIdRequest(_message.Message):
+    __slots__ = ("id",)
+    ID_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    def __init__(self, id: _Optional[str] = ...) -> None: ...
