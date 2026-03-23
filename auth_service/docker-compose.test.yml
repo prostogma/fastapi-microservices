@@ -1,5 +1,5 @@
 services:
-  postgres:
+  test_postgres:
     image: postgres:17-alpine
     restart: unless-stopped
     shm_size: 128mb
@@ -10,25 +10,16 @@ services:
       POSTGRES_PASSWORD: ${DB_PASS}
       POSTGRES_DB: ${DB_NAME}
     ports:
-      - "5435:5432"
-    volumes:
-      - pg_data:/var/lib/postgresql/data
-    
+      - "5436:5432"
     healthcheck:
-      test: ["CMD", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 5s
       timeout: 5s
       retries: 5
       start_period: 30s
     
-  redis:
+  redis_test:
     image: redis:alpine
-    container_name: redis_storage
+    container_name: redis_test_storage
     ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    
-volumes:
-  pg_data:
-  redis_data:
+      - "6380:6379"

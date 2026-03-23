@@ -1,5 +1,6 @@
 import grpc
 import pytest
+import uuid
 
 import gRPC.src.users_service_pb2 as pb
 
@@ -23,7 +24,6 @@ def test_hash_secret(secret: str):
     assert hashed != secret
     assert verify_secret(secret, hashed) is True
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "email, expected, response_data",
     [
@@ -54,3 +54,18 @@ async def test_get_user_by_email_grpc(email, expected, response_data):
             assert resp.id == response_data.id
             assert resp.is_active is response_data.is_active
             assert resp.is_verified is response_data.is_verified
+
+
+@pytest.mark.usefixtures("ovveride_users_client", "ovveride_redis")
+async def test_verify_email(async_client, redis_client):
+    token = "testvalidtoken"
+    user_id = str(uuid.uuid4())
+    
+    await redis_client.set(f"verify:{token}", user_id)
+    
+    response = await async_client.get(f"/auth/verify-email?token={token}")
+    
+    assert response.status_code == 200
+    
+    data = response.json()
+    assert "access_token" in data

@@ -29,5 +29,8 @@ class Settings(BaseSettings):
 
     auth_jwt: AuthJWT = AuthJWT()
 
+class TestSettings(Settings):
+    model_config = SettingsConfigDict(env_file=str(BASE_DIR / ".test.env"))
+
 
 settings = Settings()   # type:ignore
