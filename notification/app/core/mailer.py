@@ -22,7 +22,7 @@ class Mailer:
         template = self.env.get_template("registration.html")
 
         html_content = template.render(
-            email=recipient, token=token, verify_url="http://127.0.0.1:8000/verify_email"
+            email=recipient, token=token, verify_url="http://127.0.0.1:8000/auth/verify-email"
         )
 
         message = EmailMessage()

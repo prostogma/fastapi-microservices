@@ -100,7 +100,7 @@ class AuthService:
 
     async def verify_email(self, session: AsyncSession, token: str, redis: Redis):
         try:
-            user_id = redis.get(token)
+            user_id = await redis.get(f"verify:{token}")
             if not user_id:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
@@ -108,7 +108,7 @@ class AuthService:
                 )
 
             user_data: pb.GetUserByEmailResponse | None = (
-                self.users_client.verified_user_by_id(str(user_id))
+                await self.users_client.verified_user_by_id(user_id)
             )
             return UserAccessSchema(sub=user_data.id)
 

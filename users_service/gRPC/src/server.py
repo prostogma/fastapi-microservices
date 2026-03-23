@@ -1,3 +1,5 @@
+print("MODULE LOADED")
+
 import grpc
 import asyncio
 from grpc import aio
@@ -76,12 +78,13 @@ class UserServiceServicer(grpc_pb.UserServiceServicer):
 
 
 async def server():
+    print("Starting gRPC server...")
     server = aio.server()
     grpc_pb.add_UserServiceServicer_to_server(UserServiceServicer(), server)
     server.add_insecure_port("0.0.0.0:50051")
     await server.start()
+    print("gRPC server started on 50051")
     await server.wait_for_termination()
-
 
 if __name__ == "__main__":
     asyncio.run(server())

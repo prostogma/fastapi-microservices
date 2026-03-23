@@ -48,14 +48,14 @@ async def refresh_access_token(
     return tokens_info
 
 
-@router.post("/register", response_model=TokenInfo)
+@router.post("/register")
 async def register_user(
     register_data: Annotated[AuthSchema, Form()],
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
     redis: Annotated[Redis, Depends(get_redis)],
     producer: Annotated[KafkaProducer, Depends(get_producer)],
     session: session_DB,
-) -> TokenInfo:
+):
 
     # jwt_payload: UserAccessSchema = await auth_service.register_user(
     #     session, redis, producer, register_data.username, register_data.password
@@ -71,7 +71,7 @@ async def register_user(
     return response
 
 
-@router.post("/verify-email")
+@router.get("/verify-email")
 async def verify_email(
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
     session: session_DB,
