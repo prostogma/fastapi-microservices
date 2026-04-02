@@ -4,8 +4,11 @@ package users.v1;
 
 // Сервис для работы с сервисом пользователей
 service UserService {
-    // Возвращает информацию о пользователе по id
+    // Возвращает информацию о пользователе по email
     rpc GetUserByEmail (GetUserByEmailRequest) returns (GetUserByEmailResponse);
+
+    // Возвращает информацию о пользователе по id
+    rpc GetUserByID (GetUserByIdRequest) returns (GetUserByIdResponse);
 
     // Создаeт пользователя с заданным email
     // (временно: до реализации notifications задает is_verified = true )
@@ -28,4 +31,15 @@ message GetUserByEmailResponse {
 
 message VerifyUserByIdRequest {
     string id = 1;
+}
+
+message GetUserByIdRequest {
+    string id = 1;
+}
+
+message GetUserByIdResponse {
+    string id = 1;
+    string email = 2;
+    bool is_active = 3;
+    bool is_verified = 4;
 }

@@ -1,3 +1,5 @@
+from uuid import UUID
+
 import gRPC.src.users_service_pb2 as pb
 import gRPC.src.users_service_pb2_grpc as grpc_pb
 import grpc
@@ -42,6 +44,16 @@ class UsersServiceClient:
         except grpc.aio.AioRpcError as e:
             if e.code() == grpc.StatusCode.NOT_FOUND:
                 raise ValueError(f"Error while verifying user: {e.details()}")
+    
+    async def get_user_by_id(self, id: UUID) -> pb.GetUserByIdResponse | None:
+        try:
+            response = self._stub.GetUserByID(pb.GetUserByIdRequest(id=id))
+            return response
+        except grpc.aio.AioRpcError as e:
+            if e.code() == grpc.StatusCode.NOT_FOUND:
+                return None
+            else:
+                raise RuntimeError(f"Ошибка gRPC: {e.code()} - {e.details()}")
     
     async def close(self):
         await self._channel.close()

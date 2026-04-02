@@ -8,7 +8,7 @@ from gRPC.src import users_service_pb2_grpc as grpc_pb
 from gRPC.src import users_service_pb2 as pb
 
 from app.db.session import async_session_maker
-from app.crud.users import create_user, get_user_by_email, update_user
+from app.crud.users import create_user, get_user_by_email, get_user_by_id, update_user
 from app.core.exceptions import (
     UserAlreadyExistsError,
     UserNotFoundByEmailError,
@@ -33,7 +33,23 @@ class UserServiceServicer(grpc_pb.UserServiceServicer):
             except UserNotFoundByEmailError:
                 await context.abort(
                     grpc.StatusCode.NOT_FOUND,
-                    f"User with email {request.email} not found",
+                    f"User with email {request.email} not found!",
+                )
+
+    async def GetUserByID(self, request, context) -> pb.GetUserByIdResponse | None:
+        async with async_session_maker as session:
+            try:
+                user = await get_user_by_id(user_id=request.id, session=session)
+                response = pb.GetUserByIdResponse(
+                    id=user.id,
+                    email=user.email,
+                    is_active=user.is_active,
+                    is_verified=user.is_verified,
+                )
+                return response
+            except UserNotFoundByIdError:
+                await context.abort(
+                    grpc.StatusCode.NOT_FOUND, f"User with id {request.id} not found!"
                 )
 
     async def CreateUserByEmail(
@@ -66,6 +82,9 @@ class UserServiceServicer(grpc_pb.UserServiceServicer):
                 user = await update_user(
                     user_id=request.id, user_data=user_update_data, session=session
                 )
+
+                await session.commit()
+
                 response = pb.GetUserByEmailResponse(
                     id=str(user.id),
                     is_active=user.is_active,
@@ -85,6 +104,7 @@ async def server():
     await server.start()
     print("gRPC server started on 50051")
     await server.wait_for_termination()
+
 
 if __name__ == "__main__":
     asyncio.run(server())

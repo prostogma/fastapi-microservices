@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x13users_service.proto\x12\x08users.v1\"&\n\x15GetUserByEmailRequest\x12\r\n\x05\x65mail\x18\x01 \x01(\t\"L\n\x16GetUserByEmailResponse\x12\n\n\x02id\x18\x01 \x01(\t\x12\x11\n\tis_active\x18\x02 \x01(\x08\x12\x13\n\x0bis_verified\x18\x03 \x01(\x08\"#\n\x15VerifyUserByIdRequest\x12\n\n\x02id\x18\x01 \x01(\t2\x91\x02\n\x0bUserService\x12S\n\x0eGetUserByEmail\x12\x1f.users.v1.GetUserByEmailRequest\x1a .users.v1.GetUserByEmailResponse\x12V\n\x11\x43reateUserByEmail\x12\x1f.users.v1.GetUserByEmailRequest\x1a .users.v1.GetUserByEmailResponse\x12U\n\x10VerifiedUserById\x12\x1f.users.v1.VerifyUserByIdRequest\x1a .users.v1.GetUserByEmailResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x13users_service.proto\x12\x08users.v1\"&\n\x15GetUserByEmailRequest\x12\r\n\x05\x65mail\x18\x01 \x01(\t\"L\n\x16GetUserByEmailResponse\x12\n\n\x02id\x18\x01 \x01(\t\x12\x11\n\tis_active\x18\x02 \x01(\x08\x12\x13\n\x0bis_verified\x18\x03 \x01(\x08\"#\n\x15VerifyUserByIdRequest\x12\n\n\x02id\x18\x01 \x01(\t\" \n\x12GetUserByIdRequest\x12\n\n\x02id\x18\x01 \x01(\t\"X\n\x13GetUserByIdResponse\x12\n\n\x02id\x18\x01 \x01(\t\x12\r\n\x05\x65mail\x18\x02 \x01(\t\x12\x11\n\tis_active\x18\x03 \x01(\x08\x12\x13\n\x0bis_verified\x18\x04 \x01(\x08\x32\xdd\x02\n\x0bUserService\x12S\n\x0eGetUserByEmail\x12\x1f.users.v1.GetUserByEmailRequest\x1a .users.v1.GetUserByEmailResponse\x12J\n\x0bGetUserByID\x12\x1c.users.v1.GetUserByIdRequest\x1a\x1d.users.v1.GetUserByIdResponse\x12V\n\x11\x43reateUserByEmail\x12\x1f.users.v1.GetUserByEmailRequest\x1a .users.v1.GetUserByEmailResponse\x12U\n\x10VerifiedUserById\x12\x1f.users.v1.VerifyUserByIdRequest\x1a .users.v1.GetUserByEmailResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -37,6 +37,10 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_GETUSERBYEMAILRESPONSE']._serialized_end=149
   _globals['_VERIFYUSERBYIDREQUEST']._serialized_start=151
   _globals['_VERIFYUSERBYIDREQUEST']._serialized_end=186
-  _globals['_USERSERVICE']._serialized_start=189
-  _globals['_USERSERVICE']._serialized_end=462
+  _globals['_GETUSERBYIDREQUEST']._serialized_start=188
+  _globals['_GETUSERBYIDREQUEST']._serialized_end=220
+  _globals['_GETUSERBYIDRESPONSE']._serialized_start=222
+  _globals['_GETUSERBYIDRESPONSE']._serialized_end=310
+  _globals['_USERSERVICE']._serialized_start=313
+  _globals['_USERSERVICE']._serialized_end=662
 # @@protoc_insertion_point(module_scope)

@@ -40,6 +40,11 @@ class UserServiceStub(object):
                 request_serializer=users__service__pb2.GetUserByEmailRequest.SerializeToString,
                 response_deserializer=users__service__pb2.GetUserByEmailResponse.FromString,
                 _registered_method=True)
+        self.GetUserByID = channel.unary_unary(
+                '/users.v1.UserService/GetUserByID',
+                request_serializer=users__service__pb2.GetUserByIdRequest.SerializeToString,
+                response_deserializer=users__service__pb2.GetUserByIdResponse.FromString,
+                _registered_method=True)
         self.CreateUserByEmail = channel.unary_unary(
                 '/users.v1.UserService/CreateUserByEmail',
                 request_serializer=users__service__pb2.GetUserByEmailRequest.SerializeToString,
@@ -57,6 +62,13 @@ class UserServiceServicer(object):
     """
 
     def GetUserByEmail(self, request, context):
+        """Возвращает информацию о пользователе по email
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetUserByID(self, request, context):
         """Возвращает информацию о пользователе по id
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -84,6 +96,11 @@ def add_UserServiceServicer_to_server(servicer, server):
                     servicer.GetUserByEmail,
                     request_deserializer=users__service__pb2.GetUserByEmailRequest.FromString,
                     response_serializer=users__service__pb2.GetUserByEmailResponse.SerializeToString,
+            ),
+            'GetUserByID': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetUserByID,
+                    request_deserializer=users__service__pb2.GetUserByIdRequest.FromString,
+                    response_serializer=users__service__pb2.GetUserByIdResponse.SerializeToString,
             ),
             'CreateUserByEmail': grpc.unary_unary_rpc_method_handler(
                     servicer.CreateUserByEmail,
@@ -124,6 +141,33 @@ class UserService(object):
             '/users.v1.UserService/GetUserByEmail',
             users__service__pb2.GetUserByEmailRequest.SerializeToString,
             users__service__pb2.GetUserByEmailResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetUserByID(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/users.v1.UserService/GetUserByID',
+            users__service__pb2.GetUserByIdRequest.SerializeToString,
+            users__service__pb2.GetUserByIdResponse.FromString,
             options,
             channel_credentials,
             insecure,

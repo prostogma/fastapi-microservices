@@ -78,7 +78,7 @@ async def verify_email(
     token: str,
     redis: Annotated[Redis, Depends(get_redis)],
 ) -> TokenInfo:
-    jwt_payload: UserAccessSchema = await auth_service.verify_email(session, token, redis)
+    jwt_payload: UserAccessSchema = await auth_service.verify_email(token, redis)
     
     token = encode_jwt(payload=jwt_payload.model_dump())
     

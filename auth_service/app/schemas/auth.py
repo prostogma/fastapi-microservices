@@ -11,6 +11,7 @@ class CredentialCreateSchema(BaseModel):
 
 class UserAccessSchema(BaseModel):
     sub: str
+    is_verified: bool
     
 class TokenInfo(BaseModel):
     access_token: str

@@ -25,3 +25,21 @@ class VerifyUserByIdRequest(_message.Message):
     ID_FIELD_NUMBER: _ClassVar[int]
     id: str
     def __init__(self, id: _Optional[str] = ...) -> None: ...
+
+class GetUserByIdRequest(_message.Message):
+    __slots__ = ("id",)
+    ID_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    def __init__(self, id: _Optional[str] = ...) -> None: ...
+
+class GetUserByIdResponse(_message.Message):
+    __slots__ = ("id", "email", "is_active", "is_verified")
+    ID_FIELD_NUMBER: _ClassVar[int]
+    EMAIL_FIELD_NUMBER: _ClassVar[int]
+    IS_ACTIVE_FIELD_NUMBER: _ClassVar[int]
+    IS_VERIFIED_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    email: str
+    is_active: bool
+    is_verified: bool
+    def __init__(self, id: _Optional[str] = ..., email: _Optional[str] = ..., is_active: bool = ..., is_verified: bool = ...) -> None: ...

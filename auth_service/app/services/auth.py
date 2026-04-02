@@ -98,7 +98,7 @@ class AuthService:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
             )
 
-    async def verify_email(self, session: AsyncSession, token: str, redis: Redis):
+    async def verify_email(self, token: str, redis: Redis):
         try:
             user_id = await redis.get(f"verify:{token}")
             if not user_id:
@@ -110,7 +110,7 @@ class AuthService:
             user_data: pb.GetUserByEmailResponse | None = (
                 await self.users_client.verified_user_by_id(user_id)
             )
-            return UserAccessSchema(sub=user_data.id)
+            return UserAccessSchema(sub=user_data.id, is_verified=user_data.is_verified)
 
         except ValueError as e:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
@@ -135,10 +135,10 @@ class AuthService:
         if not user_data:
             raise unauthed_exc
 
-        if not user_data.is_active or not user_data.is_verified:
+        if not user_data.is_active:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="User inactive or no verified!",
+                detail="User inactive!",
             )
 
         user_password = await get_credential_password_by_user_id(
@@ -151,7 +151,9 @@ class AuthService:
         if not verify_secret(auth_data.password, user_password):
             raise unauthed_exc
 
-        user_access_data = UserAccessSchema(sub=user_data.id)
+        user_access_data = UserAccessSchema(
+            sub=user_data.id, is_verified=user_data.is_verified
+        )
 
         return user_access_data
 
@@ -192,7 +194,19 @@ class AuthService:
                 detail="Security error, token compromise detected",
             )
 
-        access_token_data = UserAccessSchema(sub=str(user_id))
+        # Вытягиваем из сервиса пользователей is_verified
+        try:
+            user_data: pb.GetUserByIdResponse = self.users_client.get_user_by_id(
+                user_id
+            )
+        except RuntimeError as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+            )
+
+        access_token_data = UserAccessSchema(
+            sub=str(user_id), is_verified=user_data.is_verified
+        )
         access_token = encode_jwt(payload=access_token_data.model_dump())
 
         new_refresh_token = await self.generate_refresh_token(session, user_id)
