@@ -5,7 +5,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import EmailStr
 
 from app.db.models import User
-from app.core.exceptions import UserNotFoundByEmailError, UserNotFoundByIdError, UserAlreadyExistsError
+from app.core.exceptions import (
+    UserNotFoundByEmailError,
+    UserNotFoundByIdError,
+    UserAlreadyExistsError,
+)
 from app.crud.users import (
     get_user_by_email,
     get_user_by_id,
@@ -22,6 +26,7 @@ from app.schemas.user import (
     UserUpdateSchema,
     UsersListQuerySchema,
 )
+from app.api.deps import get_current_user, require_verified_user
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -54,6 +59,17 @@ async def get_user_by_email_handler(
         user = await get_user_by_email(user_email=user_email, session=session)
         return user
     except UserNotFoundByEmailError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"{e}")
+    
+
+@router.get("/self", response_model=UserOutSchema)
+async def get_self_user(
+    session: session_DB, user_payload: Annotated[dict, Depends(get_current_user)]
+) -> UserOutSchema:
+    try:
+        user = await get_user_by_id(user_payload.get("sub"), session)
+        return user
+    except UserNotFoundByIdError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"{e}")
 
 
